@@ -5,6 +5,7 @@ import { Toaster } from 'react-hot-toast'
 import App from './App.jsx'
 import './index.css'
 
+// ✅ Render App
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter>
@@ -34,5 +35,11 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         }}
       />
     </BrowserRouter>
-  </React.StrictMode>,
+  </React.StrictMode>
 )
+
+// ✅ Remove global loader AFTER app mounts
+window.addEventListener("load", () => {
+  const loader = document.getElementById("global-loader");
+  if (loader) loader.remove();
+});
