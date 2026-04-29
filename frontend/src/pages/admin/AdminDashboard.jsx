@@ -33,7 +33,13 @@ const AdminDashboard = () => {
         fetchDashboard();
     }, []);
 
-    if (!data) return <p className="text-center mt-20">Loading...</p>;
+    if (!data) {
+        return (
+            <div className="flex justify-center items-center min-h-screen bg-gray-50">
+                <div className="animate-spin h-10 w-10 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+            </div>
+        );
+    }
 
     const chartData = data.rooms.byCategory.map((item) => ({
         name: item._id,
