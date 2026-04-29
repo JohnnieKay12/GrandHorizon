@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { FiChevronLeft, FiChevronRight, FiArrowRight } from 'react-icons/fi'
@@ -36,6 +38,16 @@ const heroSlides = [
 ]
 
 const Hero = () => {
+  const navigate = useNavigate()
+  const { isAuthenticated } = useAuth()
+
+  const handleBookNow = () => {
+    if (isAuthenticated) {
+      navigate('/rooms')
+    } else {
+      navigate('/login?redirect=rooms')
+    }
+  }
   const [currentSlide, setCurrentSlide] = useState(0)
   const [isAutoPlaying, setIsAutoPlaying] = useState(true)
 
@@ -150,15 +162,15 @@ const Hero = () => {
                 variants={textVariants}
                 className="flex flex-wrap gap-4"
               >
-                <Link
-                  to="/rooms"
+                <button
+                  onClick={handleBookNow}
                   className="inline-flex items-center gap-2 px-8 py-4 bg-gold-400 text-primary-900 
-                           rounded-lg font-semibold hover:bg-gold-500 transition-all duration-300 
-                           hover:shadow-lg hover:-translate-y-1"
+                          rounded-lg font-semibold hover:bg-gold-500 transition-all duration-300 
+                          hover:shadow-lg hover:-translate-y-1"
                 >
                   Book Now
                   <FiArrowRight className="w-5 h-5" />
-                </Link>
+                </button>
                 <Link
                   to="/about"
                   className="inline-flex items-center gap-2 px-8 py-4 border-2 border-white text-white 

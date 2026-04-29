@@ -18,15 +18,13 @@ const MyBookings = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const email = localStorage.getItem('userEmail');
-  
-    if (!email) {
+    if (!user?.email) {
       setLoading(false);
       return;
     }
   
-    fetchBookings(email);
-  }, []);
+    fetchBookings(user.email);
+  }, [user]);
   
   const fetchBookings = async (email) => {
     try {

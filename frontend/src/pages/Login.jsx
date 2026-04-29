@@ -14,11 +14,10 @@ import { Shield, Mail, Lock } from 'lucide-react';
 export default function Login() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+
   const { googleLogin, login, isAuthenticated, isAdmin } = useAuth();
 
-  // const [activeRole, setActiveRole] = useState(
-  //   searchParams.get('role') === 'admin' ? 'admin' : 'user'
-  // );
+  const redirect = searchParams.get('redirect'); // ✅ get redirect
 
   const [activeRole, setActiveRole] = useState(() => {
     return localStorage.getItem('login_role') || 'user';
@@ -34,41 +33,52 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [toast, setToast] = useState(null);
 
+  // ✅ CENTRAL REDIRECT LOGIC
+  const handleRedirect = () => {
+    if (isAdmin) {
+      navigate('/admin/dashboard');
+    } else {
+      navigate(redirect ? `/${redirect}` : '/my-bookings');
+    }
+  };
+
+  // ✅ Auto redirect if already logged in
   useEffect(() => {
     if (isAuthenticated) {
-      navigate(isAdmin ? '/admin/dashboard' : '/my-bookings');
+      handleRedirect();
     }
-  }, [isAuthenticated, isAdmin, navigate]);
+  }, [isAuthenticated]);
 
-  // ✅ ADMIN LOGIN (email/password)
+  // ✅ ADMIN LOGIN
   const handleAdminLogin = async (e) => {
     e.preventDefault();
-  
+
     if (!email || !password) {
       setToast({ message: 'Email and password required', type: 'error' });
       return;
     }
-  
+
     setIsLoading(true);
-  
+
     const res = await login(email, password);
-  
+
     setIsLoading(false);
-  
+
     if (res.success) {
       if (res.user?.role !== 'admin') {
         setToast({ message: 'Access denied: Not an admin', type: 'error' });
         return;
       }
-  
+
       setToast({ message: 'Admin login successful', type: 'success' });
-      navigate('/admin'); // ✅ force redirect
+
+      navigate('/admin');
     } else {
       setToast({ message: res.message, type: 'error' });
     }
   };
 
-  // ✅ GOOGLE LOGIN (users only)
+  // ✅ GOOGLE LOGIN (USER)
   const handleGoogleSuccess = async (credentialResponse) => {
     if (activeRole === 'admin') {
       setToast({ message: 'Admin must login with email/password', type: 'error' });
@@ -85,6 +95,11 @@ export default function Login() {
 
     if (result.success) {
       setToast({ message: 'Login successful!', type: 'success' });
+
+      // ✅ REDIRECT AFTER GOOGLE LOGIN
+      setTimeout(() => {
+        navigate(redirect ? `/${redirect}` : '/my-bookings');
+      }, 800);
     } else {
       setToast({ message: result.message, type: 'error' });
     }
@@ -107,7 +122,7 @@ export default function Login() {
           <p className="text-[#6B6B6B]">
             {activeRole === 'admin'
               ? 'Authorized personnel only'
-              : 'Continue with Google to proceed'}
+              : 'Login to continue your booking'}
           </p>
 
           {activeRole === 'admin' && (
@@ -118,10 +133,11 @@ export default function Login() {
         {/* Role Toggle */}
         <RoleToggle activeRole={activeRole} onChange={setActiveRole} />
 
-        {/* 👤 USER → GOOGLE ONLY */}
+        {/* USER LOGIN */}
         {activeRole === 'user' && (
           <>
             <Divider />
+
             <div className="mt-6 flex justify-center">
               <GoogleLogin
                 onSuccess={handleGoogleSuccess}
@@ -136,7 +152,7 @@ export default function Login() {
           </>
         )}
 
-        {/* 🛠 ADMIN → EMAIL/PASSWORD */}
+        {/* ADMIN LOGIN */}
         {activeRole === 'admin' && (
           <form onSubmit={handleAdminLogin} className="mt-6">
             <InputField

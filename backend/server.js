@@ -3,6 +3,8 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 const { errorHandler, notFound } = require('./middleware/errorHandler');
+const webhookRoutes = require('./routes/webhookRoutes');
+
 
 
 // Load environment variables
@@ -67,6 +69,7 @@ app.use('/api/rooms', roomRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/webhook', webhookRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {

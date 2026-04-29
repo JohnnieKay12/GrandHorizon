@@ -185,20 +185,15 @@ const verifyBookingPayment = asyncHandler(async (req, res) => {
 
   const verificationResult = await verifyPayment(reference);
 
-  console.log("💳 Paystack result:", verificationResult);
-
   if (!verificationResult.success) {
     throw new AppError(verificationResult.error || 'Payment verification failed', 400);
   }
 
   const paymentData = verificationResult.data;
 
-  console.log("📊 FULL PAYSTACK DATA:", paymentData);
-
   const booking = await Booking.findOne({ paystackReference: reference }).populate('roomId');
 
   if (!booking) {
-    console.log("❌ Booking not found");
     throw new AppError('Booking not found', 404);
   }
 
@@ -206,15 +201,20 @@ const verifyBookingPayment = asyncHandler(async (req, res) => {
     paymentData.status === "success" ||
     paymentData.gateway_response === "Successful";
 
-  console.log("✅ Is Paid?", isPaid);
-
   if (isPaid) {
     booking.paymentStatus = 'paid';
     booking.bookingStatus = 'confirmed';
     await booking.save();
 
-    // Send admin notification email
-    await sendAdminNotification({
+    // ✅ SEND RESPONSE IMMEDIATELY (FAST UX)
+    res.status(200).json({
+      success: true,
+      message: 'Payment verified successfully',
+      data: { booking }
+    });
+
+    // 🔥 RUN EMAILS IN BACKGROUND (NON-BLOCKING)
+    sendAdminNotification({
       bookingId: booking.bookingId,
       name: booking.name,
       email: booking.email,
@@ -227,41 +227,25 @@ const verifyBookingPayment = asyncHandler(async (req, res) => {
       totalAmount: booking.totalAmount,
       paymentStatus: booking.paymentStatus,
       specialRequests: booking.specialRequests
-    });
+    }).catch(err => console.error("Admin email error:", err));
 
-    console.log("📧 Sending email to:", booking.email);
-
-    try {
-      const emailResult = await sendUserConfirmation({
-        bookingId: booking.bookingId,
-        name: booking.name,
-        email: booking.email,
-        phone: booking.phone,
-        roomName: booking.roomId.name,
-        checkIn: booking.checkIn,
-        checkOut: booking.checkOut,
-        guests: booking.guests,
-        nights: booking.nights,
-        totalAmount: booking.totalAmount,
-        paymentStatus: booking.paymentStatus,
-        specialRequests: booking.specialRequests,
-        whatsappLink: booking.whatsappLink
-      });
-
-      console.log("📨 Email result:", emailResult);
-    } catch (err) {
-      console.error("❌ Email error:", err);
-    }
-
-    res.status(200).json({
-      success: true,
-      message: 'Payment verified successfully',
-      data: { booking }
-    });
+    sendUserConfirmation({
+      bookingId: booking.bookingId,
+      name: booking.name,
+      email: booking.email,
+      phone: booking.phone,
+      roomName: booking.roomId.name,
+      checkIn: booking.checkIn,
+      checkOut: booking.checkOut,
+      guests: booking.guests,
+      nights: booking.nights,
+      totalAmount: booking.totalAmount,
+      paymentStatus: booking.paymentStatus,
+      specialRequests: booking.specialRequests,
+      whatsappLink: booking.whatsappLink
+    }).catch(err => console.error("User email error:", err));
 
   } else {
-    console.log("❌ Payment NOT successful");
-
     booking.paymentStatus = 'failed';
     await booking.save();
 

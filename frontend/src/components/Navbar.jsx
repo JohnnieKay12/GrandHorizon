@@ -52,9 +52,9 @@ const Navbar = () => {
 
   const handleGetStarted = () => {
     if (isAuthenticated) {
-      navigate('/my-bookings')
+      navigate('/rooms') // ✅ go to rooms directly
     } else {
-      navigate('/login')
+      navigate('/login?redirect=rooms') // ✅ login then redirect back
     }
   }
 
@@ -137,7 +137,7 @@ const Navbar = () => {
                       e.stopPropagation()
                       setIsProfileOpen(!isProfileOpen)
                     }}
-                    className="w-10 h-10 rounded-full c text-white flex items-center justify-center cursor-pointer font-semibold"
+                    className="w-10 h-10 rounded-full bg-gold-400 text-primary-900 flex items-center justify-center cursor-pointer font-bold shadow-md hover:scale-105 transition"
                   >
                     {user?.name?.charAt(0).toUpperCase() || 'U'}
                   </div>
@@ -171,12 +171,12 @@ const Navbar = () => {
                 </div>
               )}
 
-              <Link
-                to={isAuthenticated ? "/rooms" : "/login"}
+              <button
+                onClick={handleGetStarted}
                 className="px-6 py-2.5 bg-gold-400 text-primary-900 rounded-lg"
               >
                 Book Now
-              </Link>
+              </button>
             </div>
 
             {/* Mobile Toggle */}
