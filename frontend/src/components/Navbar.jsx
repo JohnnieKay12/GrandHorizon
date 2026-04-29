@@ -51,10 +51,12 @@ const Navbar = () => {
   const isActive = (path) => location.pathname === path
 
   const handleGetStarted = () => {
+    setIsMobileMenuOpen(false) // 👈 close menu first
+  
     if (isAuthenticated) {
-      navigate('/rooms') // ✅ go to rooms directly
+      navigate('/rooms')
     } else {
-      navigate('/login?redirect=rooms') // ✅ login then redirect back
+      navigate('/login?redirect=rooms')
     }
   }
 
@@ -216,7 +218,7 @@ const Navbar = () => {
                   <p className="font-semibold">{user?.name}</p>
                   <p className="text-sm text-gray-500 mb-3">{user?.email}</p>
 
-                  <button onClick={() => navigate('/rooms')} className="block w-full text-left py-2">
+                  <button onClick={() => navigate('/my-bookings')}>
                     My Bookings
                   </button>
 
@@ -237,9 +239,12 @@ const Navbar = () => {
                 </button>
               )}
 
-              <Link to="/rooms" className="mt-4 block text-center py-3 bg-gold-400 rounded-lg">
+              <button
+                onClick={handleGetStarted}
+                className="mt-4 w-full py-3 bg-gold-400 rounded-lg"
+              >
                 Book Now
-              </Link>
+              </button>
             </div>
           </motion.div>
         )}
