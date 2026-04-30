@@ -56,7 +56,7 @@ const Navbar = () => {
     if (isAuthenticated) {
       navigate('/rooms')
     } else {
-      navigate('/login?redirect=rooms')
+      navigate('/login?redirect=my-bookings')
     }
   }
 

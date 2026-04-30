@@ -36,7 +36,7 @@ export default function Login() {
   // ✅ CENTRAL REDIRECT LOGIC
   const handleRedirect = () => {
     if (isAdmin) {
-      navigate('/admin/dashboard');
+      navigate('/admin');
     } else {
       navigate(redirect ? `/${redirect}` : '/my-bookings');
     }
