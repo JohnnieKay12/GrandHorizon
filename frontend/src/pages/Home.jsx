@@ -258,7 +258,7 @@ const Home = () => {
         </h2>
 
         <Link
-          to="/rooms"
+          to={isAuthenticated ? "/rooms" : "/login"}
           className="bg-gold-400 text-primary-900 px-10 py-4 rounded-lg font-bold hover:scale-105 transition shadow-lg"
         >
           Book Your Stay
