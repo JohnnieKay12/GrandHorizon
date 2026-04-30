@@ -4,6 +4,7 @@ import { AnimatePresence } from 'framer-motion'
 // Layout Components
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
+import ScrollToTop from './components/ScrollToTop';
 
 // Pages
 import Home from './pages/Home'
@@ -52,6 +53,7 @@ function App() {
       <AuthProvider>
         <ToastProvider>
           <BookingProvider>
+            <ScrollToTop />
             <div className="min-h-screen flex flex-col bg-gray-50">
               
               {/* Hide Navbar in Admin */}

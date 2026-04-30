@@ -82,7 +82,7 @@ const Contact = () => {
     setSubmitting(false)
   }
 
-  const whatsappNumber = '+2348012345678'
+  const whatsappNumber = '+2347078432313'
   const whatsappMessage = 'Hello, I would like to inquire about your hotel services.'
   const whatsappLink = `https://wa.me/${whatsappNumber.replace(/\D/g, '')}?text=${encodeURIComponent(whatsappMessage)}`
 

@@ -1,62 +1,59 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router';
-import { authAPI } from '../services/api';
-import { GoogleLogin } from '@react-oauth/google';
+import { useNavigate } from 'react-router-dom';
 import AuthLayout from '../components/AuthLayout';
 import AuthCard from '../components/AuthCard';
 import InputField from '../components/InputField';
 import PrimaryButton from '../components/PrimaryButton';
-import RoleToggle from '../components/RoleToggle';
 import Toast from '../components/Toast';
 import PasswordStrength from '../components/PasswordStrength';
-import Divider from '../components/Divider';
 import { useAuth } from '../context/AuthContext';
 import { User, Mail, Lock } from 'lucide-react';
 
-
 export default function Register() {
   const navigate = useNavigate();
-  const { register, googleLogin, isAuthenticated } = useAuth();
+  const { register, isAuthenticated } = useAuth();
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [agreedToTerms, setAgreedToTerms] = useState(false);
+
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [toast, setToast] = useState(null);
 
+  // ✅ redirect if already logged in
   useEffect(() => {
     if (isAuthenticated) {
       navigate('/my-bookings');
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated]);
 
+  // ✅ validation
   const validate = () => {
     const newErrors = {};
 
     if (!name.trim()) {
-      newErrors.name = 'Please enter your full name';
+      newErrors.name = 'Full name is required';
     } else if (name.trim().length < 2) {
       newErrors.name = 'Name must be at least 2 characters';
     }
 
     if (!email.trim()) {
       newErrors.email = 'Email is required';
-    } else if (!/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(email)) {
-      newErrors.email = 'Please enter a valid email address';
+    } else if (!/^\S+@\S+\.\S+$/.test(email)) {
+      newErrors.email = 'Enter a valid email';
     }
 
     if (!password) {
       newErrors.password = 'Password is required';
     } else {
       if (password.length < 8) {
-        newErrors.password = 'Password must be at least 8 characters';
+        newErrors.password = 'Minimum 8 characters required';
       } else if (!/[A-Z]/.test(password)) {
-        newErrors.password = 'Password must contain at least one uppercase letter';
+        newErrors.password = 'Must include an uppercase letter';
       } else if (!/[0-9]/.test(password)) {
-        newErrors.password = 'Password must contain at least one number';
+        newErrors.password = 'Must include a number';
       }
     }
 
@@ -64,76 +61,62 @@ export default function Register() {
       newErrors.confirmPassword = 'Passwords do not match';
     }
 
-    if (!agreedToTerms) {
-      newErrors.terms = 'You must agree to continue';
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
+  // ✅ submit
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!validate()) return;
-  
+
     setIsLoading(true);
-  
-    try {
-      const res = await authAPI.register({
-        name: name.trim(),
-        email: email.trim(),
-        password,
+
+    const res = await register(
+      name.trim(),
+      email.trim(),
+      password
+    );
+
+    setIsLoading(false);
+
+    if (!res.success) {
+      setToast({
+        message: res.message || 'Registration failed',
+        type: 'error',
       });
-  
-      alert("Account created successfully");
-      navigate("/login");
-  
-    } catch (err) {
-      console.error(err);
-      alert(err.message || "Registration failed");
+      return;
     }
-  
-    setIsLoading(false);
-  };
 
-  const handleGoogleSuccess = async (credentialResponse) => {
-    setIsLoading(true);
-    setToast({ message: 'Signing up with Google...', type: 'loading' });
+    setToast({
+      message: 'Account created successfully!',
+      type: 'success',
+    });
 
-    const result = await googleLogin(credentialResponse.credential);
-
-    setIsLoading(false);
-    setToast(null);
-
-    if (result.success) {
-      setToast({ message: 'Account created with Google!', type: 'success' });
-    } else {
-      setToast({ message: result.message, type: 'error' });
-    }
-  };
-
-  const handleGoogleError = () => {
-    setToast({ message: 'Google sign-up failed. Please try again.', type: 'error' });
+    // ✅ auto redirect after signup
+    setTimeout(() => {
+      navigate('/my-bookings');
+    }, 800);
   };
 
   return (
     <AuthLayout>
       <AuthCard>
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="font-playfair text-[32px] text-[#1E1E1E] mb-2">Join <span className='text-primary-900'>Grand</span><span className="text-gold-400">Horizon</span></h1>
-          <p className="text-[#6B6B6B] font-inter text-base">
-            Create your account to start booking
+
+        {/* HEADER */}
+        <div className="mb-6 text-center">
+          <h1 className="font-playfair text-[32px] text-[#1E1E1E] mb-2">
+            Create Account
+          </h1>
+
+          <p className="text-[#6B6B6B]">
+            Start booking your perfect stay
           </p>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit}>
-          {errors.general && (
-            <div className="mb-4 p-3 bg-[#FDE8E8] border border-[#E24B4B] rounded-lg">
-              <p className="text-sm text-[#E24B4B] font-inter">{errors.general}</p>
-            </div>
-          )}
+        {/* FORM */}
+        <form onSubmit={handleSubmit} className="space-y-5">
 
           <InputField
             label="Full Name"
@@ -146,20 +129,18 @@ export default function Register() {
             disabled={isLoading}
           />
 
-          <div className="mt-5">
-            <InputField
-              label="Email Address"
-              type="email"
-              placeholder="your@email.com"
-              icon={Mail}
-              value={email}
-              onChange={setEmail}
-              error={errors.email}
-              disabled={isLoading}
-            />
-          </div>
+          <InputField
+            label="Email Address"
+            type="email"
+            placeholder="your@email.com"
+            icon={Mail}
+            value={email}
+            onChange={setEmail}
+            error={errors.email}
+            disabled={isLoading}
+          />
 
-          <div className="mt-5">
+          <div>
             <InputField
               label="Password"
               type="password"
@@ -173,85 +154,42 @@ export default function Register() {
             <PasswordStrength password={password} />
           </div>
 
-          <div className="mt-5">
-            <InputField
-              label="Confirm Password"
-              type="password"
-              placeholder="Repeat your password"
-              icon={Lock}
-              value={confirmPassword}
-              onChange={setConfirmPassword}
-              error={errors.confirmPassword}
-              disabled={isLoading}
-            />
-          </div>
+          <InputField
+            label="Confirm Password"
+            type="password"
+            placeholder="Repeat password"
+            icon={Lock}
+            value={confirmPassword}
+            onChange={setConfirmPassword}
+            error={errors.confirmPassword}
+            disabled={isLoading}
+          />
 
-          {/* Terms Checkbox */}
-          <div className="mt-5">
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={agreedToTerms}
-                onChange={(e) => setAgreedToTerms(e.target.checked)}
-                disabled={isLoading}
-                className="mt-0.5 w-4 h-4 rounded border-[#E5DDD1] text-[#C9A962] focus:ring-[#C9A962] focus:ring-offset-0"
-              />
-              <span className="text-sm text-[#6B6B6B] font-inter leading-relaxed">
-                I agree to the{' '}
-                <button type="button" className="text-[#C9A962] font-medium hover:text-[#B8942F] transition-colors">
-                  Terms of Service
-                </button>{' '}
-                and{' '}
-                <button type="button" className="text-[#C9A962] font-medium hover:text-[#B8942F] transition-colors">
-                  Privacy Policy
-                </button>
-              </span>
-            </label>
-            {errors.terms && (
-              <p className="mt-1.5 text-[13px] text-[#E24B4B] font-inter animate-slide-down">
-                {errors.terms}
-              </p>
-            )}
-          </div>
-
-          <div className="mt-6">
-            <PrimaryButton type="submit" isLoading={isLoading} disabled={isLoading}>
-              Create Account
-            </PrimaryButton>
-          </div>
+          <PrimaryButton type="submit" isLoading={isLoading}>
+            Create Account
+          </PrimaryButton>
         </form>
 
-        <Divider />
-
-        <div className="relative">
-          <GoogleLogin
-            onSuccess={handleGoogleSuccess}
-            onError={handleGoogleError}
-            useOneTap
-            theme="outline"
-            size="large"
-            width="100%"
-            text="signup_with"
-          />
+        {/* FOOTER */}
+        <div className="mt-6 text-center text-sm text-[#6B6B6B]">
+          Already have an account?{' '}
+          <button
+            onClick={() => navigate('/login')}
+            className="text-[#C9A962] font-medium hover:text-[#B8942F]"
+          >
+            Sign in
+          </button>
         </div>
 
-        {/* Footer */}
-        <div className="mt-8 text-center">
-          <p className="text-sm text-[#6B6B6B] font-inter">
-            Already have an account?{' '}
-            <button
-              type="button"
-              onClick={() => navigate('/login')}
-              className="text-[#C9A962] font-medium hover:text-[#B8942F] transition-colors"
-            >
-              Sign in
-            </button>
-          </p>
-        </div>
       </AuthCard>
 
-      {/* Toast */}
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </AuthLayout>
   );
 }

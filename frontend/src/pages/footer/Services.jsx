@@ -15,6 +15,8 @@ import {
 } from 'react-icons/fi'
 import { FaCar, FaUtensils } from 'react-icons/fa'
 import SectionTitle from '../../components/SectionTitle'
+import { useAuth } from '../../context/AuthContext'
+import { Link, useNavigate } from 'react-router-dom'
 
 const services = [
   {
@@ -80,6 +82,11 @@ const services = [
 ]
 
 const Services = () => {
+
+  const navigate = useNavigate()
+  const { isAuthenticated } = useAuth()
+
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
@@ -212,13 +219,13 @@ const Services = () => {
             <p className="text-gray-600 max-w-2xl mx-auto mb-8">
               Book your stay today and enjoy all the amenities and services Grand Horizon Hotel has to offer.
             </p>
-            <a
-              href="/rooms"
+            <Link
+              to={isAuthenticated ? "/rooms" : "/login"}
               className="inline-flex items-center gap-2 px-8 py-4 bg-primary-900 text-white 
                        rounded-lg font-semibold hover:bg-primary-800 transition-colors"
             >
               Book Your Stay
-            </a>
+            </Link>
           </motion.div>
         </div>
       </section>

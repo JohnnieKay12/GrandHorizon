@@ -10,119 +10,104 @@ export function AuthProvider({ children }) {
   const isAuthenticated = !!user;
   const isAdmin = user?.role === 'admin';
 
-  // Check for existing session on mount
+  // ✅ CHECK AUTH ON APP LOAD
   useEffect(() => {
     const checkAuth = async () => {
-      const token = localStorage.getItem('haven_auth_token');
+      try {
+        const token = localStorage.getItem('haven_auth_token');
 
-      if (token) {
-        try {
-          const response = await apiClient.get('/auth/me');
-          if (response.data.success) {
-            setUser(response.data.user);
-          }
-        } catch (error) {
+        if (!token) {
+          setIsLoading(false);
+          return;
+        }
+
+        const res = await apiClient.get('/auth/me');
+
+        if (res.success) {
+          setUser(res.user);
+        } else {
           localStorage.removeItem('haven_auth_token');
         }
+      } catch (err) {
+        console.error('Auth check failed:', err);
+        localStorage.removeItem('haven_auth_token');
+      } finally {
+        setIsLoading(false);
       }
-
-      setIsLoading(false);
     };
 
     checkAuth();
   }, []);
 
+  // ✅ LOGIN (EMAIL/PASSWORD)
   const login = useCallback(async (email, password) => {
     try {
-      const response = await apiClient.post('/auth/login', { email, password });
+      const res = await apiClient.post('/auth/login', { email, password });
 
-      if (response.data.success) {
-        const { token, user } = response.data;
-        localStorage.setItem('haven_auth_token', token);
-        setUser(user);
+      if (res.success) {
+        localStorage.setItem('haven_auth_token', res.token);
+        setUser(res.user);
 
-        return { success: true, message: response.data.message };
+        return { success: true, user: res.user };
       }
 
-      return { success: false, message: response.data.message };
-    } catch (error) {
+      return { success: false, message: res.message };
+    } catch (err) {
+      console.error('Login error:', err);
       return {
         success: false,
-        message:
-          error.response?.data?.message || 'Login failed. Please try again.',
+        message: err?.message || 'Login failed',
       };
     }
   }, []);
 
+  // ✅ REGISTER
   const register = useCallback(async (name, email, password) => {
     try {
-      const response = await apiClient.post('/auth/register', {
+      const res = await apiClient.post('/auth/register', {
         name,
         email,
         password,
       });
 
-      if (response.data.success) {
-        const { token, user } = response.data;
-        localStorage.setItem('haven_auth_token', token);
-        setUser(user);
+      if (res.success) {
+        localStorage.setItem('haven_auth_token', res.token);
+        setUser(res.user);
 
-        return { success: true, message: response.data.message };
+        return { success: true };
       }
 
-      return { success: false, message: response.data.message };
-    } catch (error) {
+      return { success: false, message: res.message };
+    } catch (err) {
+      console.error('Register error:', err);
       return {
         success: false,
-        message:
-          error.response?.data?.message ||
-          'Registration failed. Please try again.',
+        message: err?.message || 'Registration failed',
       };
     }
   }, []);
 
-  const googleLogin = useCallback(async (credential) => {
-    try {
-      const response = await apiClient.post('/auth/google', { credential });
-
-      if (response.data.success) {
-        const { token, user } = response.data;
-        localStorage.setItem('haven_auth_token', token);
-        setUser(user);
-
-        return { success: true, message: response.data.message };
-      }
-
-      return { success: false, message: response.data.message };
-    } catch (error) {
-      return {
-        success: false,
-        message:
-          error.response?.data?.message ||
-          'Google login failed. Please try again.',
-      };
-    }
-  }, []);
-
+  // ✅ UPDATE PROFILE
   const updateProfile = useCallback(async (formData) => {
     try {
-      const response = await apiClient.put('/auth/update-profile', formData);
-  
-      if (response.data.success) {
-        setUser(response.data.user); // ✅ THIS is the magic (no reload)
-        return { success: true, message: response.data.message };
+      const res = await apiClient.put('/auth/update-profile', formData);
+
+      if (res.success) {
+        setUser(res.user);
+        return { success: true };
       }
-  
-      return { success: false, message: response.data.message };
-    } catch (error) {
+
+      return { success: false, message: res.message };
+    } catch (err) {
+      console.error('Update profile error:', err);
       return {
         success: false,
-        message:
-          error.response?.data?.message || 'Profile update failed',
+        message: err?.message || 'Profile update failed',
       };
     }
   }, []);
 
+  // ✅ LOGOUT
   const logout = useCallback(() => {
     localStorage.removeItem('haven_auth_token');
     setUser(null);
@@ -140,12 +125,11 @@ export function AuthProvider({ children }) {
         isLoading,
         login,
         register,
-        googleLogin,
         updateProfile,
         logout,
       }}
     >
-      {children}
+      {!isLoading && children}
     </AuthContext.Provider>
   );
 }
@@ -154,7 +138,7 @@ export function useAuth() {
   const context = useContext(AuthContext);
 
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error('useAuth must be used within AuthProvider');
   }
 
   return context;
