@@ -11,7 +11,7 @@ import LoadingSpinner from '../components/LoadingSpinner'
 import { roomAPI, bookingAPI } from '../services/api'
 import { getToday, getTomorrow } from '../utils/helpers'
 import toast from 'react-hot-toast'
-import { useAuth } from '../context/AuthContext'
+// import { useAuth } from '../context/AuthContext'
 
 const Home = () => {
   const [featuredRooms, setFeaturedRooms] = useState([])
@@ -20,7 +20,7 @@ const Home = () => {
   const [availability, setAvailability] = useState(null)
 
   const navigate = useNavigate()
-  const { isAuthenticated } = useAuth()
+  // const { isAuthenticated } = useAuth()
 
   const [searchData, setSearchData] = useState({
     checkIn: getToday(),
@@ -203,7 +203,7 @@ const Home = () => {
           {/* 🔥 STRONG CTA */}
           <div className="text-center mt-12">
             <Link
-              to={isAuthenticated ? "/rooms" : "/login"}
+              to="/rooms"
               className="bg-gold-400 text-primary-900 px-8 py-4 rounded-lg font-semibold hover:scale-105 transition inline-flex items-center gap-2 shadow-md"
             >
               Book Now <FiArrowRight />
@@ -258,7 +258,7 @@ const Home = () => {
         </h2>
 
         <Link
-          to={isAuthenticated ? "/rooms" : "/login"}
+          to="/rooms"
           className="bg-gold-400 text-primary-900 px-10 py-4 rounded-lg font-bold hover:scale-105 transition shadow-lg"
         >
           Book Your Stay

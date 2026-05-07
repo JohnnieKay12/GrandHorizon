@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
+// import { useAuth } from '../context/AuthContext'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { FiChevronLeft, FiChevronRight, FiArrowRight } from 'react-icons/fi'
@@ -39,14 +39,10 @@ const heroSlides = [
 
 const Hero = () => {
   const navigate = useNavigate()
-  const { isAuthenticated } = useAuth()
+  // const { isAuthenticated } = useAuth()
 
   const handleBookNow = () => {
-    if (isAuthenticated) {
-      navigate('/rooms')
-    } else {
-      navigate('/login?redirect=rooms')
-    }
+    navigate('/rooms')
   }
   const [currentSlide, setCurrentSlide] = useState(0)
   const [isAutoPlaying, setIsAutoPlaying] = useState(true)

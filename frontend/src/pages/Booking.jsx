@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useAuth } from '../context/AuthContext'
+// import { useAuth } from '../context/AuthContext'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { 
@@ -20,7 +20,7 @@ const Booking = () => {
   const location = useLocation()
 
   const { bookingData, setBooking } = useBooking()
-  const { isAuthenticated } = useAuth()
+  // const { isAuthenticated } = useAuth()
   
   const [room, setRoom] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -36,13 +36,13 @@ const Booking = () => {
   const [errors, setErrors] = useState({})
 
   // ✅ AUTH GUARD
-  useEffect(() => {
-    if (isAuthenticated === false) {
-      navigate('/login', {
-        state: { from: location.pathname }
-      })
-    }
-  }, [isAuthenticated, navigate, location.pathname])
+  // useEffect(() => {
+  //   if (isAuthenticated === false) {
+  //     navigate('/login', {
+  //       state: { from: location.pathname }
+  //     })
+  //   }
+  // }, [isAuthenticated, navigate, location.pathname])
 
   // ✅ FETCH ROOM
   useEffect(() => {
@@ -158,7 +158,7 @@ const Booking = () => {
 
   const totalAmount = room ? room.price * nights : 0
 
-  if (loading || isAuthenticated === false) {
+  if (loading) {
     return <LoadingSpinner fullScreen />
   }
 
